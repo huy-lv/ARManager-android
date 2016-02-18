@@ -15,7 +15,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.Toast;
 
+import com.example.huylv.armanager.asynctask.CheckLocalMarker;
 import com.example.huylv.armanager.fragment.ManagerFragment;
 import com.example.huylv.armanager.fragment.ScannerFragment;
 import com.example.huylv.armanager.model.Marker;
@@ -23,11 +26,14 @@ import com.example.huylv.armanager.util.Util;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static String PATH1;
-    public static ArrayList<Marker> markerList;
+    ManagerFragment managerFragment;
+    ScannerFragment scannerFragment;
+
+    public FrameLayout flProgressBar;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -62,44 +68,25 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+        managerFragment = new ManagerFragment();
+        scannerFragment = new ScannerFragment();
+        flProgressBar = (FrameLayout)findViewById(R.id.flProgressBar);
+
+        CheckLocalMarker clm = new CheckLocalMarker(this,managerFragment);
+        clm.execute();
+        try {
+            switch (clm.get()){
+                case 1:
+                    Toast.makeText(this, "success", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    Toast.makeText(this,"error",Toast.LENGTH_SHORT).show();
+                    break;
             }
-        });
-
-
-
-        //create root directory
-        File rootFolder = new File(Environment.getExternalStorageDirectory() + File.separator + "ARManager");
-        boolean success = true;
-        if(!rootFolder.exists()){
-            success = rootFolder.mkdir();
-        }else{
-            Log.e("cxz","folder exist");
-        }
-        if(success){
-            Log.e("cxz","root folder created");
-        }else{
-            Log.e("cxz","create error");
-        }
-
-        //check file
-        String path = rootFolder.getPath();
-        Log.e("cxz", "Path: " + path);
-        File file[] = new File(path).listFiles();
-        Log.e("cxz", "Size: " + file.length);
-        int i=0;
-        while(i<file.length){
-            Log.e("cxz", "FileName:" + file[i].getName());
-            if(Util.getFileExt(file[i].getName()).equals("fset")){
-//                String markerName = file[i].getName()
-//                if(file[i+1].getName().equals())
-            }
-            i++;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
 
 
@@ -147,9 +134,9 @@ public class MainActivity extends AppCompatActivity {
             // Return a PlaceholderFragment (defined as a static inner class below).
             switch (position){
                 case 0:
-                    return new ManagerFragment();
+                    return managerFragment;
                 case 1:
-                    return new ScannerFragment();
+                    return scannerFragment;
                 case 2:
                     return new ScannerFragment();
                 default:

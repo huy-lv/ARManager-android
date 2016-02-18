@@ -1,5 +1,7 @@
 package com.example.huylv.armanager.model;
 
+import com.example.huylv.armanager.util.Util;
+
 import java.io.File;
 
 /**
@@ -10,9 +12,13 @@ public class Marker {
     private File fset3;
     private File iset;
 
-    private String fsetLink;
-    private String fset3Link;
-    private String isetLink;
+    public Marker(File fset, File fset3, File iset, long id, String name) {
+        this.fset = fset;
+        this.fset3 = fset3;
+        this.iset = iset;
+        this.id = id;
+        this.name = name;
+    }
 
     private long id;
     private String name;
@@ -41,29 +47,6 @@ public class Marker {
         this.iset = iset;
     }
 
-    public String getFsetLink() {
-        return fsetLink;
-    }
-
-    public void setFsetLink(String fsetLink) {
-        this.fsetLink = fsetLink;
-    }
-
-    public String getFset3Link() {
-        return fset3Link;
-    }
-
-    public void setFset3Link(String fset3Link) {
-        this.fset3Link = fset3Link;
-    }
-
-    public String getIsetLink() {
-        return isetLink;
-    }
-
-    public void setIsetLink(String isetLink) {
-        this.isetLink = isetLink;
-    }
 
     public long getId() {
         return id;
@@ -79,5 +62,16 @@ public class Marker {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Marker{" +
+                "fset=" + fset +
+                ", fset3=" + fset3 +
+                ", iset=" + iset +
+                ", id=" + id +
+                ", name='" + name + '\'' +
+                '}';
     }
 }
