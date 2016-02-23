@@ -2,59 +2,83 @@ package com.example.huylv.armanager;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.Environment;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.v4.view.ViewPager;
 import android.support.v13.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.example.huylv.armanager.asynctask.CheckLocalMarker;
 import com.example.huylv.armanager.fragment.ManagerFragment;
 import com.example.huylv.armanager.fragment.ScannerFragment;
-import com.example.huylv.armanager.model.Marker;
-import com.example.huylv.armanager.util.Util;
+import com.example.huylv.armanager.fragment.ServerFragment;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
+    static {
+        System.loadLibrary("c++_shared");
+        System.loadLibrary("nftSimpleNative");
+    }
+
     ManagerFragment managerFragment;
     ScannerFragment scannerFragment;
+    ServerFragment serverFragment;
 
     public FrameLayout flProgressBar;
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
     private SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
     private ViewPager mViewPager;
+
+    // Lifecycle functions.
+    public static native boolean nativeCreate(Context ctx);
+
+    public static native boolean nativeStart();
+
+    public static native boolean nativeStop();
+
+    public static native boolean nativeDestroy();
+
+    // Camera functions.
+    public static native boolean nativeVideoInit(int w, int h, int cameraIndex, boolean cameraIsFrontFacing);
+
+    public static native void nativeVideoFrame(byte[] image);
+
+    // OpenGL functions.
+    public static native void nativeSurfaceCreated();
+
+    public static native void nativeSurfaceChanged(int w, int h);
+
+    public static native void nativeDrawFrame();
+
+    // Other functions.
+    public static native void nativeDisplayParametersChanged(int orientation, int w, int h, int dpi); // 0 = portrait, 1 = landscape (device rotated 90 degrees ccw), 2 = portrait upside down, 3 = landscape reverse (device rotated 90 degrees cw).
+
+    public static native void nativeSetInternetState(int state);
+
+    private GLSurfaceView glView;
+    private CameraSurface camSurface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -70,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
         managerFragment = new ManagerFragment();
         scannerFragment = new ScannerFragment();
+        serverFragment = new ServerFragment();
         flProgressBar = (FrameLayout)findViewById(R.id.flProgressBar);
 
         CheckLocalMarker clm = new CheckLocalMarker(this,managerFragment);
@@ -89,10 +114,41 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
+        updateNativeDisplayParameters();
+        nativeCreate(this);
     }
 
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    private void updateNativeDisplayParameters() {
+        Display d = getWindowManager().getDefaultDisplay();
+        int orientation = d.getRotation();
+        DisplayMetrics dm = new DisplayMetrics();
+        d.getMetrics(dm);
+        int w = dm.widthPixels;
+        int h = dm.heightPixels;
+        int dpi = dm.densityDpi;
+        nativeDisplayParametersChanged(orientation, w, h, dpi);
+    }
 
 
     @Override
@@ -134,11 +190,11 @@ public class MainActivity extends AppCompatActivity {
             // Return a PlaceholderFragment (defined as a static inner class below).
             switch (position){
                 case 0:
-                    return managerFragment;
-                case 1:
                     return scannerFragment;
+                case 1:
+                    return managerFragment;
                 case 2:
-                    return new ScannerFragment();
+                    return serverFragment;
                 default:
                     return new ScannerFragment();
             }
@@ -154,11 +210,11 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "AR Manager";
+                    return "Scanner";
                 case 1:
-                    return "SECTION 2";
+                    return "Manager";
                 case 2:
-                    return "SECTION 3";
+                    return "Server";
             }
             return null;
         }

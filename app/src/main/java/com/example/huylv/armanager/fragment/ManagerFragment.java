@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,11 +17,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.example.huylv.armanager.DownloadFileFromUrl;
 import com.example.huylv.armanager.R;
 import com.example.huylv.armanager.adapter.MarkerListAdapter;
+import com.example.huylv.armanager.dialog.CreateDialog;
 import com.example.huylv.armanager.model.Marker;
+import com.example.huylv.armanager.model.MarkersOnline;
 import com.example.huylv.armanager.util.Util;
+import com.google.gson.Gson;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -84,8 +85,29 @@ public class ManagerFragment extends Fragment implements View.OnClickListener{
                 startActivityForResult(photoPickerIntent, SELECT_PHOTO);
                 break;
             case R.id.btGet:
-                
+                String json = "{\"markers\": [{"
+                        + "\"name\": \"abc\","
+                        + "\"iset\": \"/public/marker/1/abc.iset\","
+                        + "\"fset\": \"/public/marker/1/abc.fset\","
+                        + "\"fset3\": \"/public/marker/1/abc.fset3\""
+                        + "},"
+                        + "{"
+                        + "\"name\": \"ccc\","
+                        + "            \"iset\": \"/public/marker/2/ccc.iset\","
+                        + "      \"fset\": \"/public/marker/2/ccc.fset\","
+                        + "      \"fset3\": \"/public/marker/2/ccc.fset3\""
+                        + "}"
+                        + "]"
+                        + "}";
+                downloadMarkerFromJson(json);
+                break;
         }
+    }
+
+    void downloadMarkerFromJson(String json) {
+        Gson g = new Gson();
+        MarkersOnline markersOnline = g.fromJson(json, MarkersOnline.class);
+        Log.e("cxz", "---" + markersOnline.getMarkers()[0].getFset());
     }
 
     @Override
@@ -99,8 +121,13 @@ public class ManagerFragment extends Fragment implements View.OnClickListener{
                     InputStream imageStream = null;
                     try {
                         imageStream = getActivity().getContentResolver().openInputStream(selectedImage);
-                        Bitmap yourSelectedImage = BitmapFactory.decodeStream(imageStream);
-                        Log.e("cxz",yourSelectedImage.toString());
+                        Bitmap bitmap = BitmapFactory.decodeStream(imageStream);
+
+                        CreateDialog c = new CreateDialog(getActivity(), bitmap);
+                        c.setTitle("Create marker");
+                        c.setCanceledOnTouchOutside(false);
+                        c.show();
+
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -108,4 +135,5 @@ public class ManagerFragment extends Fragment implements View.OnClickListener{
                 }
         }
     }
+
 }

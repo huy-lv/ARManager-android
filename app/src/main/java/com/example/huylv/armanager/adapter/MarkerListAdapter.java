@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import com.example.huylv.armanager.R;
 import com.example.huylv.armanager.model.Marker;
-import com.example.huylv.armanager.util.Util;
 
 import java.util.ArrayList;
 
@@ -29,7 +28,7 @@ public class MarkerListAdapter extends RecyclerView.Adapter<MarkerListAdapter.Ma
 
     @Override
     public MarkerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_markerlist, null);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_marker_local, null);
 
         MarkerViewHolder viewHolder = new MarkerViewHolder(view);
         return viewHolder;
