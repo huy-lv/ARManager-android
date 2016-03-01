@@ -107,7 +107,7 @@ public class ManagerFragment extends Fragment implements View.OnClickListener{
     void downloadMarkerFromJson(String json) {
         Gson g = new Gson();
         MarkersOnline markersOnline = g.fromJson(json, MarkersOnline.class);
-        Log.e("cxz", "---" + markersOnline.getMarkers()[0].getFset());
+        Log.e("cxz", "---" + markersOnline.getContents()[0].getFset());
     }
 
     @Override
